@@ -67,6 +67,15 @@ uint8_t DynamixelGetError(Dynamixel dyna) {
   return DynamixelGetReturnPacket(dyna, NULL, 0);
 }
 
+uint8_t DynamixelPing(Dynamixel dyna) {
+  uint8_t msgLength = 1;
+  uint8_t data = DYNAMIXEL_PING;
+  
+  DynamixelSendPacket(dyna, msgLength, &data);
+  wait(TXDELAY);
+  return DynamixelGetError(dyna);
+}
+
 void DynamixelSendWriteCommand(Dynamixel dyna, uint8_t dynamixelRegister, uint8_t dataLength, uint8_t* data) {
   uint8_t buffer[dataLength + 2];
 
@@ -85,15 +94,6 @@ void DynamixelSendReadCommand(Dynamixel dyna, uint8_t dynamixelRegister, uint8_t
   buffer[2] = readLength;
 
   DynamixelSendPacket(dyna, 3, buffer);
-}
-
-uint8_t DynamixelPing(Dynamixel dyna) {
-  uint8_t msgLength = 1;
-  uint8_t data = DYNAMIXEL_PING;
-  
-  DynamixelSendPacket(dyna, msgLength, &data);
-  wait(TXDELAY);
-  return DynamixelGetError(dyna);
 }
 
 uint8_t DynamixelRotateJoint(Dynamixel dyna, uint16_t position) {
@@ -148,6 +148,19 @@ uint8_t DynamixelSetReturnDelayTime(Dynamixel dyna, uint8_t returnDelayByte) {
   uint8_t msgLength = 1;
   
   DynamixelSendWriteCommand(dyna, DYNAMIXEL_RETURN_DELAY_TIME, msgLength, &returnDelayByte);
+
+  wait(TXDELAY);
+  return DynamixelGetError(dyna);
+}
+
+uint8_t DynamixelSetMaxTorque(Dynamixel dyna, uint16_t maxTorque) {
+  uint8_t msgLength = 2;
+  uint8_t data[msgLength];
+  
+  data[0] = maxTorque & 0x00FF;
+  data[1] = maxTorque >> 8;
+  
+  DynamixelSendWriteCommand(dyna, DYNAMIXEL_MAX_TORQUE_L, msgLength, data);
 
   wait(TXDELAY);
   return DynamixelGetError(dyna);

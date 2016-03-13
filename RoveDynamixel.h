@@ -123,6 +123,7 @@ uint8_t DynamixelSpinWheel(Dynamixel dyna, uint16_t speed);
 uint8_t DynamixelSetId(Dynamixel* dyna, uint8_t id);
 uint8_t DynamixelSetBaudRate(Dynamixel dyna, uint8_t baudByte);
 uint8_t DynamixelSetReturnDelayTime(Dynamixel dyna, uint8_t returnDelayByte);
+uint8_t DynamixelSetMaxTorque(Dynamixel dyna, uint16_t maxTorque);
 uint8_t DynamixelSetStatusReturnLevel(Dynamixel dyna, uint8_t level);
 uint8_t DynamixelSetMode(Dynamixel dyna, DynamixelMode mode);
 
