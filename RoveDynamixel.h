@@ -1,10 +1,10 @@
 // RoveDynamixel.h
 // Author: Gbenga Osibodu
 
-#include "RoveBoard.h"
-
 #ifndef DYNAMIXEL_H
 #define DYNAMIXEL_H
+
+#include "../RoveBoard/RoveBoard.h"
 
 // DYNAMIXEL EEPROM AREA
 #define DYNAMIXEL_MODEL_NUMBER_L           0
