@@ -7,6 +7,7 @@ void DynamixelInit(Dynamixel* dyna, DynamixelType type, uint8_t id, uint8_t uart
   dyna -> type = type;
   dyna -> id = id;
   dyna -> uart = roveBoard_UART_open(uartIndex, baud);
+  wait(5000);
 }
 
 void DynamixelSendPacket(Dynamixel dyna, uint8_t length, uint8_t* instruction) {
@@ -35,7 +36,7 @@ void DynamixelSendPacket(Dynamixel dyna, uint8_t length, uint8_t* instruction) {
 
 uint8_t DynamixelGetReturnPacket(Dynamixel dyna, uint8_t* data, size_t dataSize) {
   // To be fixed
-  uint8_t id, length, error;
+  uint8_t id, length, error = 0;
   uint8_t temp1, temp2;
   
   
@@ -48,9 +49,10 @@ uint8_t DynamixelGetReturnPacket(Dynamixel dyna, uint8_t* data, size_t dataSize)
       if (temp1 == 255 && temp2 == 255) {
         roveBoard_UART_read(dyna.uart, &id, 1);
         roveBoard_UART_read(dyna.uart, &length, 1);
-        roveBoard_UART_read(dyna.uart, &error, 1);
+        if (length > 0)
+          roveBoard_UART_read(dyna.uart, &error, 1);
         if (dataSize + 2 != length) {
-          roveBoard_UART_read(dyna.uart, NULL, length-2);
+          //roveBoard_UART_read(dyna.uart, NULL, length-2);
           return (error & DYNAMIXEL_ERROR_UNKNOWN);
         } else {
           roveBoard_UART_read(dyna.uart, data, length-2);
@@ -100,8 +102,6 @@ uint8_t DynamixelRotateJoint(Dynamixel dyna, uint16_t position) {
   uint8_t msgLength = 2;
   uint8_t data[msgLength];
   
-  //data[0] = DYNAMIXEL_WRITE_DATA;
-  //data[1] = DYNAMIXEL_GOAL_POSITION_L;
   data[0] = position & 0x00FF;
   data[1] = position >> 8;
   
@@ -119,7 +119,7 @@ uint8_t DynamixelSpinWheel(Dynamixel dyna, uint16_t speed) {
   data[1] = speed >> 8;
   
   DynamixelSendWriteCommand(dyna, DYNAMIXEL_MOVING_SPEED_L, msgLength, data);
-
+  
   wait(TXDELAY);
   return DynamixelGetError(dyna);
 }
