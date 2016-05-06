@@ -30,7 +30,7 @@ void DynamixelSendPacket(Dynamixel dyna, uint8_t length, uint8_t* instruction) {
   packet[length + 4] = checksum;
   
   roveBoard_UART_write(dyna.uart, packet, length + 5);
-  wait(50);
+  wait(600);
   roveBoard_UART_read(dyna.uart, NULL, length + 5);
 }
 
@@ -47,10 +47,15 @@ uint8_t DynamixelGetReturnPacket(Dynamixel dyna, uint8_t* data, size_t dataSize)
       temp1 = temp2;
       roveBoard_UART_read(dyna.uart, &temp2, 1);
       if (temp1 == 255 && temp2 == 255) {
-        roveBoard_UART_read(dyna.uart, &id, 1);
-        roveBoard_UART_read(dyna.uart, &length, 1);
-        if (length > 0)
-          roveBoard_UART_read(dyna.uart, &error, 1);
+        if(roveBoard_UART_available(dyna.uart) == true)
+          roveBoard_UART_read(dyna.uart, &id, 1); 
+        else return DYNAMIXEL_ERROR_UNKNOWN;
+        if(roveBoard_UART_available(dyna.uart) == true)
+          roveBoard_UART_read(dyna.uart, &length, 1); 
+        else return DYNAMIXEL_ERROR_UNKNOWN;
+        if (length > 0 && roveBoard_UART_available(dyna.uart) == true)
+          roveBoard_UART_read(dyna.uart, &error, 1); 
+        else return DYNAMIXEL_ERROR_UNKNOWN;
         if (dataSize + 2 != length) {
           //roveBoard_UART_read(dyna.uart, NULL, length-2);
           return (error & DYNAMIXEL_ERROR_UNKNOWN);
