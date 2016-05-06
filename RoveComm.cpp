@@ -44,6 +44,15 @@ void roveComm_Begin(uint8_t IP_octet1, uint8_t IP_octet2, uint8_t IP_octet3, uin
   }
 }
 
+void roveComm_IgnoreMsg()
+{
+  uint16_t dataID;
+  size_t size = 256;
+  uint8_t trashbuffer[size];
+  
+  roveComm_GetMsg(&dataID, &size, trashbuffer);
+}
+
 void roveComm_GetMsg(uint16_t* dataID, size_t* size, void* data) 
 {
   uint8_t flags = 0;
