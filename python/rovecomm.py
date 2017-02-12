@@ -123,7 +123,7 @@ class RoveComm(object):
 
         packet_size = len(contents)
         header = struct.pack(HEADER_FORMAT,
-                             RoveComm.version,
+                             VERSION,
                              seq_num,
                              flags,
                              data_id,
@@ -144,10 +144,10 @@ class RoveComm(object):
 
             # Check for special features, like pings and acknowledgements
             if flags & ACK_FLAG:
-                self._send_to(ACK, data=data_id, destination_ip=sender)
+                self._send_to(ACK, contents=data_id, destination_ip=sender)
 
             if data_id == PING:
-                self._send_to(PING_REPLY, data=struct.pack(">H", seq_num), destination_ip=sender)
+                self._send_to(PING_REPLY, contents=struct.pack(">H", seq_num), destination_ip=sender)
             elif data_id == SUBSCRIBE:
                 self.subscribers.append(sender)
             elif data_id == UNSUBSCRIBE:
