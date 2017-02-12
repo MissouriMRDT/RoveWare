@@ -122,7 +122,7 @@ class RoveComm(object):
         """
 
         packet_size = len(contents)
-        header = struct.pack(self.header_format,
+        header = struct.pack(HEADER_FORMAT,
                              RoveComm.version,
                              seq_num,
                              flags,
