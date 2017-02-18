@@ -67,7 +67,7 @@ class RoveComm(object):
 
         try:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self._socket.bind(("127.0.0.1", PORT))
+            self._socket.bind(("", PORT))
         except socket.error:
             raise Exception("Error: Could not claim port. "
                             "Either another program or another copy or rovecomm"
