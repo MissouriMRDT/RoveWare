@@ -26,6 +26,7 @@ class RoveComm(object):
         import struct
         import time
         import random
+
         def set_speed_handler(contents):
             # Contents are typically C style structs
             # ">HH" is a format code for two uint16_t
@@ -34,16 +35,20 @@ class RoveComm(object):
             # And working with C style structs from python
             speed_left, speed_right = struct.unpack(">HH", contents)
             print "Speed set to %d, %d" % (speed_left, speed_right)
+
         def add_waypoint_handler(contents):
             latitude, longitude = struct.unpack(">dd")
             print "Added waypoint (%f, %f) " % (latitude, longitude)
+
         rovecomm_node = RoveComm()
+
         # use RoveComm.callbacks to define what code should
         # run when a message is received.
         # Here we assign data id 138 to set_speed_handler
         # and data id 267 to add_waypoint_handler
         rovecomm_node.callbacks[138] = set_speed_handler
         rovecomm_node.callbacks[267] = add_waypoint_handler
+
         # Now you can do the rest of your program
         while True:
             my_telemetry = random.random()
@@ -85,13 +90,13 @@ class RoveComm(object):
         """
         Ask to receive messages from another device
         """
-        self._send_to(SUBSCRIBE, None, destination_ip)
+        self._send_to(SUBSCRIBE, "", destination_ip)
 
     def unsubscribe(self, destination_ip):
         """
         Stop receiving messages from another device
         """
-        self._send_to(UNSUBSCRIBE, None, destination_ip)
+        self._send_to(UNSUBSCRIBE, "", destination_ip)
 
     def _send_to(self, data_id, contents, destination_ip, seq_num=0x0F49, flags=0x00, port=PORT):
         """
@@ -121,7 +126,7 @@ class RoveComm(object):
     def _listen_thread(self):
         while True:
             packet, sender = self._socket.recvfrom(1024)
-            logging.debug("Packet received: %s" % packet)
+            #logging.debug("Packet received: %s" % packet)
 
             # Parse the message header
             header_length = struct.calcsize(HEADER_FORMAT)
@@ -148,4 +153,5 @@ class RoveComm(object):
                 try:
                     self.callbacks[data_id](content_bytes)
                 except KeyError:
-                    print "Warning: no callback assigned for data id %d", data_id
+                    pass
+                    #logging.debug("No callback assigned for data id %d" % data_id)
