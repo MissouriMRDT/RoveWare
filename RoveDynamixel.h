@@ -4,7 +4,7 @@
 #ifndef DYNAMIXEL_H
 #define DYNAMIXEL_H
 
-#include "../RoveBoard/RoveBoard.h"
+#include "RoveBoard.h"
 
 // DYNAMIXEL EEPROM AREA
 #define DYNAMIXEL_MODEL_NUMBER_L           0
