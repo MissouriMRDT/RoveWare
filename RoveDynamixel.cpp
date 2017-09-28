@@ -7,7 +7,7 @@ void DynamixelInit(Dynamixel* dyna, DynamixelType type, uint8_t id, uint8_t uart
   dyna -> type = type;
   dyna -> id = id;
   dyna -> uart = roveBoard_UART_open(uartIndex, baud);
-  delay(5000);
+  delayMicroseconds(5000);
 }
 
 void DynamixelSendPacket(Dynamixel dyna, uint8_t length, uint8_t* instruction) {
@@ -30,20 +30,21 @@ void DynamixelSendPacket(Dynamixel dyna, uint8_t length, uint8_t* instruction) {
   packet[length + 4] = checksum;
 
   roveBoard_UART_write(dyna.uart, packet, length + 5);
-  delay(600);
+  delayMicroseconds(600);
   roveBoard_UART_read(dyna.uart, NULL, length + 5);
 }
 
 uint8_t DynamixelGetReturnPacket(Dynamixel dyna, uint8_t* data, size_t dataSize) {
   // To be fixed
-  uint8_t id, length, error = 0;
-  uint8_t temp1, temp2;
   while(roveBoard_UART_available(dyna.uart) == true)
   {
     roveBoard_UART_read(dyna.uart, NULL, 1);
   }
   return 0;
 
+  //might be added in later
+  /*uint8_t id, length, error = 0;
+  uint8_t temp1, temp2;
   if(roveBoard_UART_available(dyna.uart) == true)
   {
     roveBoard_UART_read(dyna.uart, &temp2, 1);
@@ -95,7 +96,7 @@ uint8_t DynamixelGetReturnPacket(Dynamixel dyna, uint8_t* data, size_t dataSize)
       }
     }
   }
-  return DYNAMIXEL_ERROR_UNKNOWN;
+  return DYNAMIXEL_ERROR_UNKNOWN;*/
 }
 
 uint8_t DynamixelGetError(Dynamixel dyna) {
@@ -107,7 +108,7 @@ uint8_t DynamixelPing(Dynamixel dyna) {
   uint8_t data = DYNAMIXEL_PING;
 
   DynamixelSendPacket(dyna, msgLength, &data);
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   return DynamixelGetError(dyna);
 }
 
@@ -140,7 +141,7 @@ uint8_t DynamixelRotateJoint(Dynamixel dyna, uint16_t position) {
 
   DynamixelSendWriteCommand(dyna, DYNAMIXEL_GOAL_POSITION_L, msgLength, data);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   return DynamixelGetError(dyna);
 }
 
@@ -153,7 +154,7 @@ uint8_t DynamixelSpinWheel(Dynamixel dyna, uint16_t speed) {
 
   DynamixelSendWriteCommand(dyna, DYNAMIXEL_MOVING_SPEED_L, msgLength, data);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   return DynamixelGetError(dyna);
 }
 
@@ -164,7 +165,7 @@ uint8_t DynamixelSetId(Dynamixel* dyna, uint8_t id) {
 
   dyna -> id = id;
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   return DynamixelGetError(*dyna);
 }
 
@@ -173,7 +174,7 @@ uint8_t DynamixelSetBaudRate(Dynamixel dyna, uint8_t baudByte) {
 
   DynamixelSendWriteCommand(dyna, DYNAMIXEL_BAUD_RATE, msgLength, &baudByte);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   return DynamixelGetError(dyna);
 }
 
@@ -182,7 +183,7 @@ uint8_t DynamixelSetReturnDelayTime(Dynamixel dyna, uint8_t returnDelayByte) {
 
   DynamixelSendWriteCommand(dyna, DYNAMIXEL_RETURN_DELAY_TIME, msgLength, &returnDelayByte);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   return DynamixelGetError(dyna);
 }
 
@@ -195,7 +196,7 @@ uint8_t DynamixelSetMaxTorque(Dynamixel dyna, uint16_t maxTorque) {
 
   DynamixelSendWriteCommand(dyna, DYNAMIXEL_MAX_TORQUE_L, msgLength, data);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   return DynamixelGetError(dyna);
 }
 
@@ -204,7 +205,7 @@ uint8_t DynamixelSetStatusReturnLevel(Dynamixel dyna, uint8_t level) {
 
   DynamixelSendWriteCommand(dyna, DYNAMIXEL_RETURN_LEVEL, msgLength, &level);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   return DynamixelGetError(dyna);
 }
 
@@ -253,18 +254,21 @@ uint8_t DynamixelSetMode(Dynamixel dyna, DynamixelMode mode) {
 
   DynamixelSendWriteCommand(dyna, DYNAMIXEL_CW_ANGLE_LIMIT_L, msgLength, data);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   return DynamixelGetError(dyna);
 }
 
 uint8_t DynamixelGetMode(Dynamixel dyna, DynamixelMode* mode) {
-  uint8_t msgLength = 3, dataSize = 4, error;
-  uint8_t data[msgLength], buffer[dataSize];
+  //uint8_t msgLength = 3;
+  uint8_t dataSize = 4;
+  uint8_t error;
+  //uint8_t data[msgLength];
+  uint8_t buffer[dataSize];
   uint16_t cwAngleLimit, ccwAngleLimit;
 
   DynamixelSendReadCommand(dyna, DYNAMIXEL_CW_ANGLE_LIMIT_L, dataSize);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   error = DynamixelGetReturnPacket(dyna, buffer, dataSize);
 
   cwAngleLimit = buffer[1];
@@ -299,7 +303,7 @@ uint8_t DynamixelGetPresentPosition(Dynamixel dyna, uint16_t* pos) {
 
   DynamixelSendReadCommand(dyna, DYNAMIXEL_PRESENT_POSITION_L, dataSize);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   error = DynamixelGetReturnPacket(dyna, buffer, dataSize);
 
   *pos = buffer[1];
@@ -314,7 +318,7 @@ uint8_t DynamixelGetPresentSpeed(Dynamixel dyna, uint16_t* speed) {
 
   DynamixelSendReadCommand(dyna, DYNAMIXEL_PRESENT_SPEED_L, dataSize);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   error = DynamixelGetReturnPacket(dyna, buffer, dataSize);
 
   *speed = buffer[1];
@@ -329,7 +333,7 @@ uint8_t DynamixelGetLoad(Dynamixel dyna, uint16_t* load) {
 
   DynamixelSendReadCommand(dyna, DYNAMIXEL_PRESENT_LOAD_L, dataSize);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   error = DynamixelGetReturnPacket(dyna, buffer, dataSize);
 
   *load = buffer[1];
@@ -343,7 +347,7 @@ uint8_t DynamixelGetVoltage(Dynamixel dyna, uint8_t* voltage) {
 
   DynamixelSendReadCommand(dyna, DYNAMIXEL_PRESENT_VOLTAGE, dataSize);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   return DynamixelGetReturnPacket(dyna, voltage, dataSize);
 }
 
@@ -352,6 +356,6 @@ uint8_t DynamixelGetTemperature(Dynamixel dyna, uint8_t* temp) {
 
   DynamixelSendReadCommand(dyna, DYNAMIXEL_PRESENT_TEMPERATURE, dataSize);
 
-  delay(TXDELAY);
+  delayMicroseconds(TXDELAY);
   return DynamixelGetReturnPacket(dyna, temp, dataSize);
 }
