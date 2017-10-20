@@ -58,8 +58,6 @@ bool roveComm_GetMsg(RoveCommSerialHandle uartHandle, uint16_t* dataID, uint8_t*
     if(uartBuffLength < roveUartPeek(uartHandle) +  ROVECOMMSERIAL_HEADER_LENGTH)
     {
       //this message is actually bigger than the serial buffer, we can't process it
-      debugFault("RoveComm get message: Attempting to receive a message bigger than the uart buffer will allow for");
-
       return false;
     }
     else
