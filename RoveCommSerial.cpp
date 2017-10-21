@@ -8,15 +8,16 @@
 #include "RoveBoard.h"
 #include <string.h>
 
-#define ROVECOMMSERIAL_HEADER_LENGTH 6
+#define ROVECOMMSERIAL_START         0xFE
 
-#define LENGTH_OFFSET       0
-#define FLAGS_OFFSET        1
-#define DATAID_OFFSET_MSB   2
-#define DATAID_OFFSET_LSB   3
-#define CRC_OFFSET_MSB      4
-#define CRC_OFFSET_LSB      5
 
+#define START_OFFSET        0
+#define LENGTH_OFFSET       1
+#define FLAGS_OFFSET        2
+#define DATAID_OFFSET_MSB   3
+#define DATAID_OFFSET_LSB   4
+#define CRC_OFFSET_MSB      5
+#define CRC_OFFSET_LSB      6
 
 #define ROVECOMM_ACKNOWLEDGE_FLAG   1
 #define ROVECOMM_PING               0x0001
@@ -30,6 +31,8 @@ static void RoveCommParseMsg(uint8_t* buffer, uint16_t* dataID, uint8_t * size, 
 static void RoveCommHandleSystemMsg(RoveCommSerialHandle uartHandle, uint8_t* buffer, uint16_t* dataID, uint8_t* size, void* data, uint8_t* flags);
 static uint16_t crc16(const uint8_t* data_p, uint8_t length);
 
+static bool receiveHeaderStarted = false;
+
 RoveCommSerialHandle roveCommSerial_BeginSingle(uint16_t uart_index, uint16_t baud_rate, uint16_t txPin, uint16_t rxPin)
 {
   return roveUartOpen(uart_index, baud_rate, txPin, rxPin);
@@ -42,26 +45,64 @@ bool roveComm_GetMsg(RoveCommSerialHandle uartHandle, uint16_t* dataID, uint8_t*
   *dataID = 0;
   *size = 0;
 
-  //if there's not even enough bytes available for a header segment, we either haven't received anything or
-  //we haven't received a complete package
-  if(roveUartAvailable(uartHandle) < ROVECOMMSERIAL_HEADER_LENGTH)
+  //if we haven't started the process of receiving a packet yet (IE we just finished retrieving one or program is on startup)
+  //then look to see if you can find one. If we do have messages in the buffer and the first ISN'T the start byte, then we're out of order
+  //and we should clear out the buffer until we either do find one or it's empty
+  if(!receiveHeaderStarted)
+  {
+    if(roveUartAvailable(uartHandle) == 0)
+    {
+      return true;
+    }
+
+    else if(roveUartPeek(uartHandle) != ROVECOMMSERIAL_START)
+    {
+      uint8_t dummy;
+      uint8_t i;
+      uint8_t bytesInReadBuff = roveUartAvailable(uartHandle);
+      for(i = 0; i < bytesInReadBuff; i++)
+      {
+        roveUartRead(uartHandle, &dummy, 1); //discard incorrect start packet
+        if(roveUartPeek(uartHandle) == ROVECOMMSERIAL_START)
+        {
+          receiveHeaderStarted = true;
+          break;
+        }
+      }
+    }
+
+    else
+    {
+      receiveHeaderStarted = true;
+    }
+  }
+
+  if(!receiveHeaderStarted)
   {
     return true;
   }
 
-  //if we do have a header packet, check to see how many more bytes we expect in this transmission. Size of the data payload in bytes
-  //is the first thing in the header, so just use uartPeek to see it. If we have a complete header but don't yet have the complete
-  //data payload, then we haven't received a complete package
-  else if(roveUartPeek(uartHandle) +  ROVECOMMSERIAL_HEADER_LENGTH < roveUartAvailable(uartHandle))
+  //if we do have the beginning of a header packet, check to see how many more bytes we expect in this transmission. If there's nothing left in the buffer, then obviously
+  //we don't have the rest of the packet yet
+  else if(roveUartAvailable(uartHandle) == 0)
+  {
+    return true;
+  }
+
+  //Size of the data payload in bytes is the first thing in the header, so just use uartPeek to see it.
+  //If we have more bytes available but less than what the size we expect then we haven't received a complete package
+  else if(roveUartPeek(uartHandle) + ROVECOMMSERIAL_HEADER_LENGTH < roveUartAvailable(uartHandle))
   {
     uint16_t uartBuffLength = roveUartGetBufferLength(uartHandle);
     if(uartBuffLength < roveUartPeek(uartHandle) +  ROVECOMMSERIAL_HEADER_LENGTH)
     {
-      //this message is actually bigger than the serial buffer, we can't process it
+      //this message is actually bigger than the serial buffer, we can't process it. Restart process
+      receiveHeaderStarted = false;
       return false;
     }
     else
     {
+      //we can hold what's to come, it's just not here yet
       return true;
     }
   }
@@ -77,6 +118,7 @@ bool roveComm_GetMsg(RoveCommSerialHandle uartHandle, uint16_t* dataID, uint8_t*
     RoveCommParseMsg(buffer, dataID, size, data, &flags);
     RoveCommHandleSystemMsg(uartHandle, buffer, dataID, size, data, &flags);
 
+    receiveHeaderStarted = false; //restart process
     return true;
   }
 }
@@ -109,7 +151,7 @@ bool roveComm_SendMsg(RoveCommSerialHandle uartHandle, uint16_t dataID, uint8_t 
   uint8_t buffer[packetSize];
   crc = crc16((uint8_t*)data, size);
 
-
+  buffer[START_OFFSET] = ROVECOMMSERIAL_START;
   buffer[LENGTH_OFFSET] = size;
   buffer[FLAGS_OFFSET] = flags;
   buffer[DATAID_OFFSET_MSB] = dataID >> 8;
@@ -160,10 +202,9 @@ static void RoveCommHandleSystemMsg(RoveCommSerialHandle uartHandle, uint8_t* bu
   *size = 0;
 }
 
-bool roveCommSerial_SetSerialBufferSize(RoveCommSerialHandle uartHandle, uint16_t newBufferSize)
+void roveCommSerial_SetSerialBufferSize(RoveCommSerialHandle uartHandle, uint16_t newBufferSize)
 {
   roveUartSetBufferLength(uartHandle, newBufferSize);
-  return true;
 }
 
 uint16_t roveCommSerial_GetSerialBufferSize(RoveCommSerialHandle uartHandle)
@@ -171,7 +212,7 @@ uint16_t roveCommSerial_GetSerialBufferSize(RoveCommSerialHandle uartHandle)
   return roveUartGetBufferLength(uartHandle);
 }
 
-uint16_t crc16(const uint8_t* data_p, uint8_t length)
+static uint16_t crc16(const uint8_t* data_p, uint8_t length)
 {
     uint8_t x;
     uint16_t crc = 0xFFFF;
