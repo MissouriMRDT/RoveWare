@@ -26,7 +26,7 @@ typedef roveUART_Handle RoveCommSerialHandle;
 //          baud_rate:    baud rate of the uart to use
 //          txPin:        transmitting pin to be used by the uart. Must be associated with the uart; check your device's roveUart.h file for info
 //          rxPin:        receiving pin to be used by the uart. Must be associated with the uart; check your device's roveUart.h file for info
-//          maxDataBytes: The maximum amount of bytes this board is expected to receive as data from a rovecomm message
+//          maxDataBytes: The maximum amount of bytes this board is expected to receive or transmit as data from a rovecomm message
 //
 //returns:  a handle to the now initialized rovecomm instance for this uart.
 //Note:     You can call this multiple times for different uart modules if you wish to do rovecomm data exchange on more than one module
