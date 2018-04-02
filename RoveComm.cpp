@@ -33,7 +33,7 @@ void roveComm_Begin(char* ssid, char* password, uint8_t IP_octet1, uint8_t IP_oc
 {
   roveIP IP = roveWiFi_SetIP(IP_octet1, IP_octet2, IP_octet3, IP_octet4);
   
-  roveWiFi_NetworkingStart(char* ssid, char* password, uint8_t first_octet, uint8_t second_octet, uint8_t third_octet, uint8_t fourth_octet)
+  roveWiFi_NetworkingStart(ssid, password, IP);
   
   roveWiFi_UdpSocketListen(ROVECOMM_PORT);
   
