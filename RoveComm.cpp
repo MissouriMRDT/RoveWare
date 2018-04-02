@@ -29,13 +29,13 @@ static void RoveCommParseMsg(uint8_t* buffer, uint16_t* dataID, size_t* size, vo
 static void RoveCommHandleSystemMsg(uint8_t* buffer, uint16_t* dataID, size_t* size, void* data, uint16_t* seqNum, uint8_t* flags, roveIP IP);
 static bool RoveCommAddSubscriber(roveIP IP);
 
-void roveComm_Begin(uint8_t IP_octet1, uint8_t IP_octet2, uint8_t IP_octet3, uint8_t IP_octet4) 
+void roveComm_Begin(char* ssid, char* password, uint8_t IP_octet1, uint8_t IP_octet2, uint8_t IP_octet3, uint8_t IP_octet4) 
 {
-  roveIP IP = roveEthernet_SetIP(IP_octet1, IP_octet2, IP_octet3, IP_octet4);
+  roveIP IP = roveWiFi_SetIP(IP_octet1, IP_octet2, IP_octet3, IP_octet4);
   
-  roveEthernet_NetworkingStart(IP);
+  roveWiFi_NetworkingStart(char* ssid, char* password, uint8_t first_octet, uint8_t second_octet, uint8_t third_octet, uint8_t fourth_octet)
   
-  roveEthernet_UdpSocketListen(ROVECOMM_PORT);
+  roveWiFi_UdpSocketListen(ROVECOMM_PORT);
   
   int i;
   for (i=0; i < ROVECOMM_MAX_SUBSCRIBERS; i++) 
@@ -62,7 +62,7 @@ void roveComm_GetMsg(uint16_t* dataID, size_t* size, void* data)
   *dataID = 0;
   *size = 0;
   
-  if (roveEthernet_GetUdpMsg(&senderIP, RoveCommBuffer, sizeof(RoveCommBuffer)) == ROVE_ETHERNET_ERROR_SUCCESS) 
+  if (roveWiFi_GetUdpMsg(&senderIP, RoveCommBuffer, sizeof(RoveCommBuffer)) == ROVE_WIFI_ERROR_SUCCESS) 
   {
     RoveCommParseMsg(RoveCommBuffer, dataID, size, data, &seqNum, &flags);  
     RoveCommHandleSystemMsg(RoveCommBuffer, dataID, size, data, &seqNum, &flags, senderIP);
@@ -103,7 +103,7 @@ void roveComm_SendMsgTo(uint16_t dataID, size_t size, const void* data, uint16_t
   
   memcpy(&(buffer[8]), data, size);
 
-  roveEthernet_SendUdpPacket(destIP, destPort, buffer, packetSize);
+  roveWiFi_SendUdpPacket(destIP, destPort, buffer, packetSize);
 }
 
 void roveComm_SendMsg(uint16_t dataID, size_t size, const void* data) 
