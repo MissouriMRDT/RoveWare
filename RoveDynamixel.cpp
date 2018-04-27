@@ -3,10 +3,10 @@
 
 #include "RoveDynamixel.h"
 
-void DynamixelInit(Dynamixel* dyna, DynamixelType type, uint8_t id, uint8_t uartIndex, int baud) {
+void DynamixelInit(Dynamixel* dyna, DynamixelType type, uint8_t id, uint8_t uartIndex, int baud, uint8_t txPin, uint8_t rxPin) {
   dyna -> type = type;
   dyna -> id = id;
-  dyna -> uart = roveBoard_UART_open(uartIndex, baud);
+  dyna -> uart = roveBoard_UART_open(uartIndex, baud, txPin, rxPin);
   delayMicroseconds(5000);
 }
 
