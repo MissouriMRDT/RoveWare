@@ -69,6 +69,15 @@ AxisControlStatus SingleMotorAxis::runOutputControl(const long movement)
     if(motionComplete == false && mov == 0)
     {
       returnStatus = AlgorithmError;
+      controller1->stop();
+    }
+
+    //check to see if stopcap has demanded we stop. As well, we pass it mov so that it can modify it
+    //if the stopcaps demand that we modify the move value
+    else if(!handleStopCap(&mov, controller1->inType))
+    {
+      controller1->stop();
+      returnStatus = StopcapActivated;
     }
     else
     {

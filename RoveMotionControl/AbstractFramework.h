@@ -7,8 +7,7 @@ class MotionAxis;
 class IOConverter;
 class OutputDevice;
 class FeedbackDevice;
-class SupportingAlgorithm;
-class IOConverter;
+class StopcapMechanism;
 
 class DifferentialAxis;
 class SingleMotorAxis;
@@ -30,12 +29,18 @@ class MotionAxis
     //called in runOutputControl
     OutputDevice* controller1;
 
+    //pointer to the stopcap mechanism the axis has been told to use
+    StopcapMechanism* stopcap;
+
     //tracks whether or not the parameters passed in the axis constructor were valid
     bool validConstruction;
     
     //tracks whether or not the user has passed in an algorithm to use; if not, commands are passed directly to output
     bool algorithmUsed;
     
+    //tracks whether or not the user has passed in a stopcap to use
+    bool stopcapUsed;
+
     //tracks whether or not the axis has been enabled for operation
     bool enabled;
 
@@ -44,11 +49,13 @@ class MotionAxis
     //returns:  true if the input is in a valid range, false if it's not
     bool verifyInput(long inputToVerify);
 
+    bool handleStopCap(long *move, ValueType valueType);
+
     MotionAxis(ValueType in, IOConverter* alg, OutputDevice* dev)
-    : enabled(true), inType(in), algorithmUsed(true), manip(alg), controller1(dev) {};
+    : enabled(true), inType(in), algorithmUsed(true), manip(alg), controller1(dev), stopcapUsed(false) {};
 
     MotionAxis(ValueType in, OutputDevice* dev)
-    : enabled(true), inType(in), algorithmUsed(false), manip(0), controller1(dev) {};
+    : enabled(true), inType(in), algorithmUsed(false), manip(0), controller1(dev), stopcapUsed(false) {};
 
   public:
 
@@ -100,6 +107,8 @@ class MotionAxis
     //warning:  not thread safe
     bool removeIOConverter(ValueType newInputType);
     
+    void useStopcap(StopcapMechanism* stopcapToUse);
+
     //Overview: tells axis to stop using an IOConverter, IE values should be passes straight to the output,
     //          and swap the axis's outputDevice with a different one.
     //
@@ -131,30 +140,30 @@ class FeedbackDevice
 
     ValueType fType;
 
-	public:
+  public:
 
-		//Overview: returns the sensor's feedback information, such as last read position or speed, depending on
+    //Overview: returns the sensor's feedback information, such as last read position or speed, depending on
     //          what the feedback type is. Public for everything to see, if desired
     //
-		//returns:  a value representing feedback, the range of the value depends on what input type this device returns.
-		//          For example, if this device returns speed feedback, the values shall be in the range between SPEED_MIN and SPEED_MAX
-		virtual long getFeedback() = 0;
+    //returns:  a value representing feedback, the range of the value depends on what input type this device returns.
+    //          For example, if this device returns speed feedback, the values shall be in the range between SPEED_MIN and SPEED_MAX
+    virtual long getFeedback() = 0;
 
     //Overview: checks to see what the status is of the feedback device. Call getFeedback() to update the status, then
     //          call this to see if the operation had any issues.
-		virtual FeedbackDevice_Status getFeedbackStatus() = 0;
+    virtual FeedbackDevice_Status getFeedbackStatus() = 0;
 
-		ValueType getFeedbackType() { return fType; }
+    ValueType getFeedbackType() { return fType; }
 };
 
 //represents the device (or any general method) used for physically causing movement, such as a motor controller.
 //see README.md for more info
 class OutputDevice
 {
-	//Axis interface needs access to its functions
-	friend class SingleMotorAxis;
-	friend class DifferentialAxis;
-	friend class MotionAxis;
+  //Axis interface needs access to its functions
+  friend class SingleMotorAxis;
+  friend class DifferentialAxis;
+  friend class MotionAxis;
 
   public:
     
@@ -162,20 +171,20 @@ class OutputDevice
     //return value depends on what value type the device operates on; a speed value for speed devices, etc.
     virtual long getCurrentMove() = 0;
 
-	protected:
+  protected:
 
-		//overview: calls the device to move the motor, based on the passed value of movement.
-		//
+    //overview: calls the device to move the motor, based on the passed value of movement.
+    //
     //Input:    Can be values based on any of the input types as defined in the enum above, and the ranges for these values
-		//          should stay within the max and min constants for each type
-		virtual void move(const long movement) =  0;
+    //          should stay within the max and min constants for each type
+    virtual void move(const long movement) =  0;
 
-		//expected input that the output device wants.
-		ValueType inType;
+    //expected input that the output device wants.
+    ValueType inType;
 
-		//used for if the specific controller is mounted backwards on the motor axis.
-		//True means invert the signal (backwards) False means just send the signal
-		bool invert;
+    //used for if the specific controller is mounted backwards on the motor axis.
+    //True means invert the signal (backwards) False means just send the signal
+    bool invert;
 
     //tracks whether or not the device is enabled/powered on by the axis manager
     bool enabled;
@@ -260,6 +269,12 @@ class IOConverter
     IOConverter(ValueType in, ValueType out)
     : supportUsed(false), supportingAlgorithm(0), inType(in), outType(out), supportIsPersistant(false)
     {};
+};
+
+class StopcapMechanism
+{
+  public:
+    virtual StopcapStatus getStopcapStatus() = 0;
 };
 
 #endif

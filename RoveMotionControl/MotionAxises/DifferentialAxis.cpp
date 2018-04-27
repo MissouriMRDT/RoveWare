@@ -38,7 +38,7 @@ DifferentialAxis::~DifferentialAxis()
 
 AxisControlStatus DifferentialAxis::runOutputControl(const long movement)
 {
-  int mov; //var used as interrum value since algorithm can change the value
+  long mov; //var used as interrum value since algorithm can change the value
   bool motionComplete;
   AxisControlStatus returnStatus;
   
@@ -70,7 +70,18 @@ AxisControlStatus DifferentialAxis::runOutputControl(const long movement)
     //if motionComplete returned false but movement is 0, that's an indication that an error state occured
     if(motionComplete == false && mov == 0)
     {
+      controller1->stop();
+      controller2->stop();
       returnStatus = AlgorithmError;
+    }
+
+    //check to see if stopcap has demanded we stop. As well, we pass it mov so that it can modify it
+    //if the stopcaps demand that we modify the move value
+    else if(!handleStopCap(&mov, controller1->inType))
+    {
+      controller1->stop();
+      controller2->stop();
+      returnStatus = StopcapActivated;
     }
     else
     {
@@ -207,4 +218,3 @@ void DifferentialAxis::pairDifferentialAxis(DifferentialAxis* otherAxis)
     }
   }
 }
-

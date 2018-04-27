@@ -38,13 +38,24 @@ enum AxisControlStatus
   DeviceDisabled,
 
   //IOAlgorithm returned error
-  AlgorithmError
+  AlgorithmError,
+
+  //The stopcap for the axis was activated and stopped the axis from moving.
+  StopcapActivated
 };
 
 enum FeedbackDevice_Status
 {
   FeedbackStatus_Success,
   FeedbackStatus_Fail
+};
+
+enum StopcapStatus
+{
+  StopcapStatus_None,
+  StopcapStatus_OnlyPositive,
+  StopcapStatus_OnlyNegative,
+  StopcapStatus_FullStop
 };
 
 //The common inputs and outputs between classes will fall between these limits, class should not expect to take or return values outside of these
