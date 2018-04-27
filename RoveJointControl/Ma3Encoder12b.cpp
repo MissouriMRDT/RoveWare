@@ -3,11 +3,36 @@
 
 static const int PWM_READ_MAX = 4095;
 static const int PWM_READ_MIN = 1;
+static const int DISCONNECT_COUNT_CLOSE = 10;
 
 long Ma3Encoder12b::getFeedback()
 {
   int32_t readOnPeriod = getOnPeriod(PwmHandle, PWM_MICRO); //signed for calculation below
 
+  //first check to see if our line has been disconnected. We check to see if it's disconnected multiple times
+  //before actually reporting the failure because slight wiggles in the wires can make it seem disconnected
+  //even though it's not.
+  static uint8_t disconnectCount = 0;
+  if(readOnPeriod == 0)
+  {
+    //if it's already failed, don't increment anymore, just wait until we stop, well, failing.
+    if(status == FeedbackStatus_Success)
+    {
+      disconnectCount++;
+
+      if(disconnectCount > DISCONNECT_COUNT_CLOSE)
+      {
+        status = FeedbackStatus_Fail;
+      }
+    }
+  }
+  else
+  {
+    disconnectCount = 0;
+    status = FeedbackStatus_Success;
+  }
+
+  //do the fancy dsp crap to make sure the signal looks fine on the outside
   if(abs(lastReading - readOnPeriod) < deadband || readOnPeriod == 0 || readOnPeriod > pwmMax)
   {
     readOnPeriod = lastReading;
@@ -55,7 +80,7 @@ long Ma3Encoder12b::getFeedback()
 
 Ma3Encoder12b::Ma3Encoder12b(uint16_t pwmReadModule, uint16_t mappedPinNumber)
   : FeedbackDevice(InputPosition), offsetAngle(0), PwmHandle(initPwmRead(pwmReadModule, mappedPinNumber)), deadband(5), lastReading(PWM_READ_MIN),
-    pwmMax(PWM_READ_MAX), reversed(false), filterConstant(0)
+    pwmMax(PWM_READ_MAX), reversed(false), filterConstant(0), status(FeedbackStatus_Success)
 {}
 
 float Ma3Encoder12b::getFeedbackDegrees()
@@ -89,4 +114,9 @@ void Ma3Encoder12b::reverseDirection(bool reverse)
 void Ma3Encoder12b::setFilterConstant(float filter)
 {
   filterConstant = filter;
+}
+
+FeedbackDevice_Status Ma3Encoder12b::getFeedbackStatus()
+{
+  return status;
 }

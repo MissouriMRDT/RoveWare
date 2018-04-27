@@ -140,6 +140,10 @@ class FeedbackDevice
 		//          For example, if this device returns speed feedback, the values shall be in the range between SPEED_MIN and SPEED_MAX
 		virtual long getFeedback() = 0;
 
+    //Overview: checks to see what the status is of the feedback device. Call getFeedback() to update the status, then
+    //          call this to see if the operation had any issues.
+		virtual FeedbackDevice_Status getFeedbackStatus() = 0;
+
 		ValueType getFeedbackType() { return fType; }
 };
 

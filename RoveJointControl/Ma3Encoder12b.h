@@ -18,6 +18,7 @@ class Ma3Encoder12b: public FeedbackDevice
     uint32_t pwmMax;
     bool reversed;
     float filterConstant;
+    FeedbackDevice_Status status;
 
   public:
 
@@ -32,6 +33,10 @@ class Ma3Encoder12b: public FeedbackDevice
     //          If unreliable results are returned consistently, taking an average of returned values might work in your favor
     long getFeedback();
     
+    //checks to see what the status is of the feedback device. Call getFeedback() to update the status, then
+    //call this to see if the operation had any issues.
+    FeedbackDevice_Status getFeedbackStatus();
+
     //overview: sets an angular offset. For example, if you want absolute angle 37 to represent angle 0 for the framework's calculations,
     //          enter -37. The offset gets added to the absolute read angle, and the new relative angle is what the rest of the framework
     //          shall consider to be the joints 'true' angle

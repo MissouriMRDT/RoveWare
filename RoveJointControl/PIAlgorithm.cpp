@@ -192,12 +192,14 @@ long PIAlgorithm::runAlgorithm(const long input, const long oldOutput, bool * re
   
   float deg_disToDest = calcRouteToDest(deg_posNow, deg_posDest);
   
-  //if the calculation returned that we can't reach the destination, return error state
-  if(deg_disToDest == IMPOSSIBLE_MOVEMENT)
+  //if the calculation returned that we can't reach the destination, return error state.
+  //Also if the feedback device reports an error, return error state.
+  if(deg_disToDest == IMPOSSIBLE_MOVEMENT || feedbackDev->getFeedbackStatus() != FeedbackStatus_Success)
   {
     *ret_OutputFinished = false;
     return 0;
   }
+
 
   // Check if the current value of the rotation is within the margin-of-error acceptable for the location.
   // If so, set the value to be OutputFinished to be true, so the user knows the movement is complete.
