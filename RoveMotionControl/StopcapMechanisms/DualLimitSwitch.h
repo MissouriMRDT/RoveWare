@@ -1,5 +1,5 @@
 /*
- * DirectionalLimitSwitch.h
+ * DualLimitSwitch.h
  *
  *  Created on: Apr 27, 2018
  *      Author: drue
@@ -12,17 +12,16 @@
 #include "../RoveMotionControl.h"
 #include <stdint.h>
 
-class DirectionalLimitSwitch : StopcapMechanism
+class DualLimitSwitch : public StopcapMechanism
 {
   private:
     bool switchLogicHigh;
-    uint16_t switchPin;
-    bool directionThatsAlwaysAllowed;
+    uint16_t positiveDirectionSwitchPin;
+    uint16_t negativeDirectionSwitchPin;
 
   public:
     StopcapStatus getStopcapStatus();
-
-    DirectionalLimitSwitch(uint16_t pin, bool isLogicHigh, bool allowableDirection);
+    DualLimitSwitch(uint16_t negativePin, uint16_t positivePin, bool isLogicHigh);
 };
 
 

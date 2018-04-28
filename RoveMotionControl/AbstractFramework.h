@@ -107,7 +107,22 @@ class MotionAxis
     //warning:  not thread safe
     bool removeIOConverter(ValueType newInputType);
     
+    //Overview: Tells axis to use a stopcapMechanism, this will tell the axis to listen to the passed mechanism for
+    //          when it should stop moving such as limit switches.
+    //inputs:   The stopcap to use
+    //
+    //returns:  fuck all
+    //
+    //warning:  not thread safe.
     void useStopcap(StopcapMechanism* stopcapToUse);
+
+    //Overview: Tells axis to stop using a stopcapMechanism.
+    //inputs:   fuck all
+    //
+    //returns:  fuck all, cause fuck you that's why
+    //
+    //warning: not thread safe.
+    void removeStopcap();
 
     //Overview: tells axis to stop using an IOConverter, IE values should be passes straight to the output,
     //          and swap the axis's outputDevice with a different one.
@@ -271,8 +286,13 @@ class IOConverter
     {};
 };
 
+//represents any kind of sensor or mechanism designed to alert the axis of motion that it needs to stop moving, in general
+//or in a certain direction, such as a limit switch.
 class StopcapMechanism
 {
+  protected:
+    StopcapMechanism() {};
+
   public:
     virtual StopcapStatus getStopcapStatus() = 0;
 };
