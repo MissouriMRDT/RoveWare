@@ -203,7 +203,7 @@ long PIAlgorithm::runAlgorithm(const long input, const long oldOutput, bool * re
 
   // Check if the current value of the rotation is within the margin-of-error acceptable for the location.
   // If so, set the value to be OutputFinished to be true, so the user knows the movement is complete.
-  if (-deg_deadBand < deg_disToDest && deg_disToDest < deg_deadBand)
+  if (-deg_deadBand < deg_disToDest && deg_disToDest < deg_deadBand || (deg_deadBand == deg_disToDest && deg_deadBand == 0))
   {
     *ret_OutputFinished = true;
 
