@@ -23,7 +23,7 @@ BTM7752GwithPCA9685::BTM7752GwithPCA9685(uint8_t chipAdd, uint8_t motorInd, uint
 {
   chipAddress = chipAdd;
   motorIndex = motorInd;
-  i2cHandle = i2cInit(i2cIndex, DEFAULT_SPEED, clockPin, dataPin);
+  i2cHandle = roveI2cInit(i2cIndex, DEFAULT_SPEED, clockPin, dataPin);
   motorEnPin = motorEnablePin;
   I2cModule = i2cIndex;
   ClockPin = clockPin;
@@ -96,7 +96,7 @@ void BTM7752GwithPCA9685::move(const long movement)
         digitalPinWrite(ClockPin, LOW);
         digitalPinWrite(ClockPin, HIGH);
         digitalPinWrite(ClockPin, LOW);
-        i2cHandle = i2cInit(I2cModule, I2CSPEED_FAST, ClockPin, DataPin);
+        i2cHandle = roveI2cInit(I2cModule, I2CSPEED_FAST, ClockPin, DataPin);
         error = roveI2cSendBurstReg(i2cHandle, ChipAddress, channelRegisterBaseOffset+4, offMsg, 4);
         count++;
         if(error != I2CERROR_NONE)
@@ -122,7 +122,7 @@ void BTM7752GwithPCA9685::move(const long movement)
         digitalPinWrite(ClockPin, LOW);
         digitalPinWrite(ClockPin, HIGH);
         digitalPinWrite(ClockPin, LOW);
-        i2cHandle = i2cInit(I2cModule, I2CSPEED_FAST, ClockPin, DataPin);
+        i2cHandle = roveI2cInit(I2cModule, I2CSPEED_FAST, ClockPin, DataPin);
         error = roveI2cSendBurstReg(i2cHandle, ChipAddress, channelRegisterBaseOffset, offMsg, 4);
         count++;
         if(error != I2CERROR_NONE)
@@ -165,7 +165,7 @@ void BTM7752GwithPCA9685::stop()
   if(error != I2CERROR_NONE)
   {
     //reset i2c if an error occurred
-    i2cHandle = i2cInit(I2cModule, I2CSPEED_FAST, ClockPin, DataPin);
+    i2cHandle = roveI2cInit(I2cModule, I2CSPEED_FAST, ClockPin, DataPin);
     roveI2cSendBurstReg(i2cHandle, ChipAddress, channelRegisterBaseOffset, msg, 4);
   }
   roveI2cSendBurstReg(i2cHandle, chipAddress, channelRegisterBaseOffset+4, msg, 4); //send to forward and reverse channels

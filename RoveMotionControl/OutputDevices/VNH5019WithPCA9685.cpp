@@ -20,7 +20,7 @@ VNH5019WithPCA9685::VNH5019WithPCA9685(uint8_t chipAdd, uint8_t motorInd, uint8_
   : OutputDevice(InputPowerPercent, inverted), ChipAddress(chipAdd), MotorIndex(motorInd), InaPin(motorInaPin), InbPin(motorInbPin),
     I2cModule(i2cModuleIndex), DataPin(dataPin), ClockPin(clockPin)
 {
-  i2cHandle = i2cInit(i2cModuleIndex, I2CSPEED_FAST, clockPin, dataPin);
+  i2cHandle = roveI2cInit(i2cModuleIndex, I2CSPEED_FAST, clockPin, dataPin);
 
   if(motorInd > MAX_MOTOR_CHANNELS)
   {
@@ -96,7 +96,7 @@ void VNH5019WithPCA9685::move(const long movement)
       digitalPinWrite(ClockPin, LOW);
       digitalPinWrite(ClockPin, HIGH);
       digitalPinWrite(ClockPin, LOW);
-      i2cHandle = i2cInit(I2cModule, I2CSPEED_FAST, ClockPin, DataPin);
+      i2cHandle = roveI2cInit(I2cModule, I2CSPEED_FAST, ClockPin, DataPin);
       error = roveI2cSendBurstReg(i2cHandle, ChipAddress, channelRegister, msg, 4);
       count++;
       if(error != I2CERROR_NONE)
@@ -132,7 +132,7 @@ void VNH5019WithPCA9685::stop()
   if(error != I2CERROR_NONE)
   {
     //reset i2c if an error occurred
-    i2cHandle = i2cInit(I2cModule, I2CSPEED_FAST, ClockPin, DataPin);
+    i2cHandle = roveI2cInit(I2cModule, I2CSPEED_FAST, ClockPin, DataPin);
     roveI2cSendBurstReg(i2cHandle, ChipAddress, channelRegisterBaseOffset, msg, 4);
   }
 
