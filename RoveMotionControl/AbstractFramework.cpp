@@ -127,6 +127,12 @@ void MotionAxis::useStopcap(StopcapMechanism* stopcapToUse)
   stopcapUsed = true;
 }
 
+void MotionAxis::removeStopcap()
+{
+  stopcap = NULL;
+  stopcapUsed = false;
+}
+
 bool MotionAxis::handleStopCap(long *move, ValueType valueType)
 {
   if(!stopcapUsed)

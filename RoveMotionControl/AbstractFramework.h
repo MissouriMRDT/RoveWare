@@ -49,6 +49,12 @@ class MotionAxis
     //returns:  true if the input is in a valid range, false if it's not
     bool verifyInput(long inputToVerify);
 
+    //Overview: Function that will check to see the status of the attached stop cap (if there is one) and modify the
+    //          move value accordingly.
+    //inputs:   Move: A pointer to the move value that the Axis of motion wants to pass to its output device(s)
+    //          valueType: What type of value move represents
+    //returns:  True if the axis is cleared to pass the move value to its outputDevice(s), false if the axis needs to
+    //          issue a stop command
     bool handleStopCap(long *move, ValueType valueType);
 
     MotionAxis(ValueType in, IOConverter* alg, OutputDevice* dev)
