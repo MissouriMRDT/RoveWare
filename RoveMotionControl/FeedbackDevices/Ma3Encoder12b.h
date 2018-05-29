@@ -20,8 +20,9 @@ class Ma3Encoder12b: public FeedbackDevice
     float filterConstant;
     uint8_t disconnectCount;
     uint32_t millisLastReading;
+    long lastReturn;
     FeedbackDevice_Status status;
-
+    uint32_t maxDisconnectCount;
     void checkForDisconnect(uint16_t readOnPeriod);
 
   public:
@@ -64,6 +65,8 @@ class Ma3Encoder12b: public FeedbackDevice
     void reverseDirection(bool reverse);
 
     void setFilterConstant(float filter);
+
+    void setMaxDisconnectCount(uint32_t maxDisconnectCnt);
 };
 
 #endif

@@ -7,6 +7,7 @@ static const int DISCONNECT_COUNT_CLOSE = 10;
 static const uint8_t UPDATE_PERIOD_MS = 4;
 long Ma3Encoder12b::getFeedback()
 {
+  int32_t readOnPeriod;
   uint32_t millisNow = millis();
   if(millisNow < millisLastReading) //clock cycled over
   {
@@ -14,11 +15,12 @@ long Ma3Encoder12b::getFeedback()
   }
   else if(millisNow - millisLastReading < UPDATE_PERIOD_MS)
   {
-    return lastReading;
+    return lastReturn;
   }
+
   millisLastReading = millisNow;
 
-  int32_t readOnPeriod = getOnPeriod(PwmHandle, PWM_MICRO); //signed for calculation below
+  readOnPeriod = getOnPeriod(PwmHandle, PWM_MICRO); //signed for calculation below
 
   checkForDisconnect(readOnPeriod);
 
@@ -65,17 +67,19 @@ long Ma3Encoder12b::getFeedback()
     relativeAngle += (POS_MAX-POS_MIN);
   }
   
+  lastReturn = relativeAngle;
   return(relativeAngle);
 }
 
 Ma3Encoder12b::Ma3Encoder12b(uint16_t pwmReadModule, uint16_t mappedPinNumber)
   : FeedbackDevice(InputPosition), offsetAngle(0), PwmHandle(initPwmRead(pwmReadModule, mappedPinNumber)), deadband(5), lastReading(PWM_READ_MIN),
-    pwmMax(PWM_READ_MAX), reversed(false), filterConstant(0), status(FeedbackStatus_Success), disconnectCount(0), millisLastReading(0)
+    pwmMax(PWM_READ_MAX), reversed(false), filterConstant(0), status(FeedbackStatus_Success), disconnectCount(0), millisLastReading(0),
+    maxDisconnectCount(DISCONNECT_COUNT_CLOSE), lastReturn(0)
 {}
 
 float Ma3Encoder12b::getFeedbackDegrees()
 {
-  float position = getFeedback();
+  long position = getFeedback();
   return(position * 360.0 / ((float)(POS_MAX-POS_MIN)));
 }
 
@@ -111,7 +115,7 @@ FeedbackDevice_Status Ma3Encoder12b::getFeedbackStatus()
   return status;
 }
 
-void  Ma3Encoder12b::checkForDisconnect(uint16_t readOnPeriod)
+void Ma3Encoder12b::checkForDisconnect(uint16_t readOnPeriod)
 {
   //We check to see if it's disconnected multiple times
   //before actually reporting the failure because slight wiggles in the wires can make it seem disconnected
@@ -123,7 +127,7 @@ void  Ma3Encoder12b::checkForDisconnect(uint16_t readOnPeriod)
     {
       disconnectCount++;
 
-      if(disconnectCount > DISCONNECT_COUNT_CLOSE)
+      if(disconnectCount > maxDisconnectCount)
       {
         status = FeedbackStatus_Fail;
       }
@@ -134,4 +138,9 @@ void  Ma3Encoder12b::checkForDisconnect(uint16_t readOnPeriod)
     disconnectCount = 0;
     status = FeedbackStatus_Success;
   }
+}
+
+void Ma3Encoder12b::setMaxDisconnectCount(uint32_t maxDisconnectCnt)
+{
+  maxDisconnectCount = maxDisconnectCnt;
 }
