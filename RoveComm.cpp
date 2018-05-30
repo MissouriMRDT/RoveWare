@@ -90,7 +90,7 @@ static void RoveCommParseMsg(uint8_t* buffer, uint16_t* dataID, size_t* size, vo
 void roveComm_SendMsgTo(uint16_t dataID, size_t size, const void* data, uint16_t seqNum, uint8_t flags, roveIP destIP, uint16_t destPort) 
 {
   size_t packetSize = size + ROVECOMM_HEADER_LENGTH;
-  uint8_t buffer[packetSize];
+  uint8_t *buffer = RoveCommBuffer;
   
   buffer[0] = ROVECOMM_VERSION;
   buffer[1] = seqNum >> 8;
