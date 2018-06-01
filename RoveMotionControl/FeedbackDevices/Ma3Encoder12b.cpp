@@ -5,6 +5,7 @@ static const int PWM_READ_MAX = 4095;
 static const int PWM_READ_MIN = 1;
 static const int DISCONNECT_COUNT_CLOSE = 10;
 static const uint8_t UPDATE_PERIOD_MS = 4;
+
 long Ma3Encoder12b::getFeedback()
 {
   int32_t readOnPeriod;

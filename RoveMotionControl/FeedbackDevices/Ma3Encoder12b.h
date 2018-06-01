@@ -18,7 +18,7 @@ class Ma3Encoder12b: public FeedbackDevice
     uint32_t pwmMax;
     bool reversed;
     float filterConstant;
-    uint8_t disconnectCount;
+    uint32_t disconnectCount;
     uint32_t millisLastReading;
     long lastReturn;
     FeedbackDevice_Status status;
