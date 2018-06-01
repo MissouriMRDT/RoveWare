@@ -18,7 +18,7 @@ The `AbstractFramework.h` and `AbstractFramework.cpp` files holds the top level 
 * Other files in roveware such as RoveDynamixel
 
 ## Usage
-* 0) Include `RoveJointControl.h`. Then, include the derivative classes you want to use.
+* 0) Include `RoveMotionControl.h`. Then, include the derivative classes you want to use.
 * 1) Construct the `OutputDevice` representing the device (motor controller, h-bridge, etc) used to move the axis of motion.
 * 2) If the axis is closed-loop controlled, then also construct a `FeedbackDevice` representing the device on the axis and the `IOAlgorithm` representing the desired closed-loop algorithm. Otherwise if it uses any other kind of algorithm to interpret commands for the motor, construct the `IOAlgorithm` without a feedback device. Using no `IOAlgorithm` is also an option, if the `OutputDevice` can understand the commands on its own.
 ** Note that if you want to use more complicated control schemes, you can weave multiple `IOAlgorithm`'s together; `IOAlgorithm` supports lacing multiple algorithms in order so that multiple are ran in sequence whenever the axis is updated. More details in its module description below
@@ -55,8 +55,33 @@ primary class used historically so the one with the most development. For more d
 Feedback devices are used to help determine sensory information about the axises. For example, some are used by the `IOAlgorithm` class to gain information on the system's physical state such as its current position.
 * `Ma3Encoder12b` MA3 magnetic encoder, 12 bit pwm version. Communicates via PWM, 12-bit resolution of degrees over 360 degrees.
 
+### Stopcap Mechanisms
+Stopcap devices are used to signal the motion of axis that it needs to stop moving, either entirely or limited to a single direction. An example of this is 
+limit switches.
+* `DualLimitSwitch` A class that represents when two limit switches are used to keep an axis of motion from going too far forward or backward. One represents 
+the limit of positive direction, one negative
+* `SingleStopLimitSwitch` A class that represents when one limit switch is used on an axis of motion, where triggering it stops the motion entirely and 
+requires removing the switch in software before it can be moved again.
+
+### Experimental
+Classes which have not been proven to work and are still in development.
+* `GravityCompensation` class that tries to account for gravity during axis motion. Designed to act as a supporting IOConverter to another IOConverter rather than usually directly controlling an axis itself.
+It relies on both GravityInertiaSystemStatus.h and TtoPPOpenLConverter, the former to compute the heavy gravitational math and the latter to 
+convert the resulting torque into power percent. 
+* `GravityInertiaSystemStatus` this class is fairly unique, it's designed to be able to compute how much torque the robotic arm is under at any given moment due to gravity and inertia. It does this by taking in mechanical constants about the arm and tracks the different feedback device's needed to figure out where the arm is
+currently at. Note that this class needs its own separate call to compute its math separate from the rest of the RJC; it has an update() function that should be called periodically, this will signal to the class that it needs to update its results for how much torque the arm is currently under. 
+The rest of the RMC that tries to compensate for gravity or inertia will call this class everytime they are asked to update their movements. The reason it exists separately is that the math is heavy enough to where it would be unreasonable to run it every single time the controls update, 
+so it should be called periodically on a separate thread to the rest of RMC, updating independantly as fast as the user wants the math to be updated.
+* `PIV Converter` A cascaded PID loop composed of two loops, a slower position loop running on the outside and a quicker velocity loop that's being fed the results of the outer. 
+Requires both positional and velocity encoders
+* `Velocity Deriver` A feedbackDevice class that tries to interprolate speed based off of applying a derivative to a positional sensor's data.
+
+### Deprecated
+Classes which aren't ready to use and we don't particularly plan to use anytime soon
+*`DynamixelController` A class designed to operate dynamixel controllers as an output device
+
 ## Examples
-* Examples can be found in the ArmBoardSoftware repo, where RoveJointControl was created.
+* Examples can be found in the ArmBoardSoftware repo, where RoveMotionControl was created.
 
 ## Extension
 In order to implement new modules into the framework:
