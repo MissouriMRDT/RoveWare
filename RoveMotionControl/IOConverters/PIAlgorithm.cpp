@@ -171,16 +171,16 @@ void PIAlgorithm::setHardStopPositions(float hardStopPos1_deg, float hardStopPos
 
 long PIAlgorithm::addToOutput(const long inputValue, const long calculatedOutput)
 {
-  bool dummy;
+  IOConverter_Status dummy;
   return runAlgorithm(inputValue, calculatedOutput, &dummy);
 }
 
-long PIAlgorithm::runAlgorithm(const long input, const long oldOutput, bool * ret_OutputFinished)
+long PIAlgorithm::runAlgorithm(const long input, const long oldOutput, IOConverter_Status * ret_status)
 {
   // Check if the Algorithm class has actually been initialized or not. If not, kill the function.
   if (validConstruction == false)
   {
-    *ret_OutputFinished = false;
+    ret_status->flags = IOConverter_AlgorithmFail;
     return 0;
   }
 
@@ -194,18 +194,23 @@ long PIAlgorithm::runAlgorithm(const long input, const long oldOutput, bool * re
   
   //if the calculation returned that we can't reach the destination, return error state.
   //Also if the feedback device reports an error, return error state.
-  if(deg_disToDest == IMPOSSIBLE_MOVEMENT || feedbackDev->getFeedbackStatus() != FeedbackStatus_Success)
+  if(deg_disToDest == IMPOSSIBLE_MOVEMENT)
   {
-    *ret_OutputFinished = false;
+    ret_status->flags = IOConverter_AlgorithmFail;
     return 0;
   }
-
+  else if(feedbackDev->getFeedbackStatus() != FeedbackStatus_Success)
+  {
+    ret_status->flags = IOConverter_FeedbackFail;
+    ret_status->failedDevice = feedbackDev;
+    return 0;
+  }
 
   // Check if the current value of the rotation is within the margin-of-error acceptable for the location.
   // If so, set the value to be OutputFinished to be true, so the user knows the movement is complete.
   if (-deg_deadBand < deg_disToDest && deg_disToDest < deg_deadBand || (deg_deadBand == deg_disToDest && deg_deadBand == 0))
   {
-    *ret_OutputFinished = true;
+    ret_status->flags = IOConverter_Complete;
 
     if(supportIsPersistant)
     {
@@ -245,14 +250,14 @@ long PIAlgorithm::runAlgorithm(const long input, const long oldOutput, bool * re
 
   // Ensure that the output is not finished (since it has gotten this far) so that the function
   // should be run once again.
-  *ret_OutputFinished = false;
+  ret_status->flags = IOConverter_RunAgain;
 
   return pwr_out;
 }
 
-long PIAlgorithm::runAlgorithm(const long input, bool * ret_OutputFinished)
+long PIAlgorithm::runAlgorithm(const long input, IOConverter_Status * ret_status)
 {
-  return runAlgorithm(input, 0, ret_OutputFinished);
+  return runAlgorithm(input, 0, ret_status);
 }
 
 void PIAlgorithm::setDeadband(float degrees)

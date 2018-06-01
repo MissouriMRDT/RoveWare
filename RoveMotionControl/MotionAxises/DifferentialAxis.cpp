@@ -39,7 +39,7 @@ DifferentialAxis::~DifferentialAxis()
 AxisControlStatus DifferentialAxis::runOutputControl(const long movement)
 {
   long mov; //var used as interrum value since algorithm can change the value
-  bool motionComplete;
+  IOConverter_Status converterStatus;
   AxisControlStatus returnStatus;
   
   if(!enabled)
@@ -59,20 +59,27 @@ AxisControlStatus DifferentialAxis::runOutputControl(const long movement)
   	//runs the algorithm on the input if there is one. Else it just passes the output directly to the output device
     if(algorithmUsed)
     {
-      mov = manip->runAlgorithm(movement, &motionComplete);
+      mov = manip->runAlgorithm(movement, &converterStatus);
     }
     else
     {
       mov = movement;
-      motionComplete = true;
+      converterStatus.flags = IOConverter_Complete;
     }
     
-    //if motionComplete returned false but movement is 0, that's an indication that an error state occured
-    if(motionComplete == false && mov == 0)
+    if(converterStatus.flags != IOConverter_Complete && converterStatus.flags != IOConverter_RunAgain)
     {
       controller1->stop();
       controller2->stop();
-      returnStatus = AlgorithmError;
+
+      if(converterStatus.flags == IOConverter_AlgorithmFail)
+      {
+        returnStatus = AlgorithmError;
+      }
+      else if(converterStatus.flags == IOConverter_FeedbackFail)
+      {
+        returnStatus = FeedbackError;
+      }
     }
 
     //check to see if stopcap has demanded we stop. As well, we pass it mov so that it can modify it
@@ -85,7 +92,7 @@ AxisControlStatus DifferentialAxis::runOutputControl(const long movement)
     }
     else
     {
-      if(motionComplete == true)
+      if(converterStatus.flags == IOConverter_Complete)
       {
         returnStatus = OutputComplete;
       }

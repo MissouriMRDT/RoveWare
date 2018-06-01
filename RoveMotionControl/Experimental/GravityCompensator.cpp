@@ -13,11 +13,11 @@ const uint32_t DefaultLoopsTillErrorComp = 10;
 const uint32_t DefaultAcceptableError = 1000; //milli newton meters
 const uint32_t DefaultErrorReadingDeadband = 100; //milli newton meters
 
-long GravityCompensator::runAlgorithm(const long input, bool * ret_OutputFinished)
+long GravityCompensator::runAlgorithm(const long input, IOConverter_Status * ret_status)
 {
   //if runAlgorithm is called this might be the only alg called, so use the input as also being the output so this class doesn't just
   //kill all movement
-  *ret_OutputFinished = true;
+  ret_status->flags = IOConverter_Complete;
   return addToOutput(input, input) + input;
 }
 
@@ -25,7 +25,7 @@ long GravityCompensator::addToOutput(const long inputValue, const long calculate
 {
   double gravTorque;
   long gravPwm;
-  bool dummy;
+  IOConverter_Status dummy;
 
   gravTorque = -1 * systemStatus->getGravity(axisId);
 

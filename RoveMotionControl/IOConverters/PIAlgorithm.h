@@ -66,10 +66,10 @@ class PIAlgorithm : public IOConverter
     //          input: The position to attempt to go towards, expressed from POS_MAX to POS_MIN
     //
     // returns: The calculated value to pass to the axis's output device, based on how far from the destination the axis is.
-    long runAlgorithm(const long input, bool * ret_OutputFinished);
+    long runAlgorithm(const long input, IOConverter_Status * ret_status);
 
     //internal instance of runAlgorithm that's designed to be able to service runAlgorithm(long, bool*) or addToOutput.
-    long runAlgorithm(const long input, const long oldOutput, bool * ret_OutputFinished);
+    long runAlgorithm(const long input, const long oldOutput,IOConverter_Status * ret_status);
 
     //function to be called when class is acting as a support algorithm to another IOConverter.
     long addToOutput(const long inputValue, const long calculatedOutput);

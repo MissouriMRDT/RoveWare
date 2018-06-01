@@ -257,7 +257,7 @@ class IOConverter
     //          long: The calculated output to directly pass to the output device
     //
     //Note:     If ret_OutputFinished returns false but input returns 0, it's an indication that an error has occured
-    virtual long runAlgorithm(const long input, bool * ret_OutputFinished) = 0;
+    virtual long runAlgorithm(const long input, IOConverter_Status * ret_status) = 0;
 
     //function to be called when class is acting as a support algorithm to another IOConverter.
     //Rather than being the driving force behind the movement, as it is when runAlgorithm is called, this signals to the class that it's
@@ -302,5 +302,6 @@ class StopcapMechanism
   public:
     virtual StopcapStatus getStopcapStatus() = 0;
 };
+
 
 #endif

@@ -36,7 +36,7 @@ SingleMotorAxis::~SingleMotorAxis()
 AxisControlStatus SingleMotorAxis::runOutputControl(const long movement)
 {
 	long mov; //var used as interrum value since algorithm can change the value
-  bool motionComplete;
+  IOConverter_Status converterStatus;
   AxisControlStatus returnStatus;
 
   if(!enabled)
@@ -57,19 +57,26 @@ AxisControlStatus SingleMotorAxis::runOutputControl(const long movement)
   	//calls algorithm if there's one used. If not, output passed directly to output device
     if(algorithmUsed)
     {
-      mov = manip->runAlgorithm(movement, &motionComplete);
+      mov = manip->runAlgorithm(movement, &converterStatus);
     }
     else
     {
       mov = movement;
-      motionComplete = true;
+      converterStatus.flags = IOConverter_Complete;
     }
     
-    //if motionComplete returned false but movement is 0, that's an indication that an error state occured
-    if(motionComplete == false && mov == 0)
+    if(converterStatus.flags != IOConverter_Complete && converterStatus.flags != IOConverter_RunAgain)
     {
-      returnStatus = AlgorithmError;
       controller1->stop();
+
+      if(converterStatus.flags == IOConverter_AlgorithmFail)
+      {
+        returnStatus = AlgorithmError;
+      }
+      else if(converterStatus.flags == IOConverter_FeedbackFail)
+      {
+        returnStatus = FeedbackError;
+      }
     }
 
     //check to see if stopcap has demanded we stop. As well, we pass it mov so that it can modify it
@@ -81,7 +88,7 @@ AxisControlStatus SingleMotorAxis::runOutputControl(const long movement)
     }
     else
     {
-      if(motionComplete == true)
+      if(converterStatus.flags == IOConverter_Complete)
       {
         returnStatus = OutputComplete;
       }

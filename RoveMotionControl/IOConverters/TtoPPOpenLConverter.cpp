@@ -29,9 +29,9 @@ TtoPPOpenLConverter::TtoPPOpenLConverter(TorqueConverterMotorTypes motor_type, f
   }
 }
 
-long TtoPPOpenLConverter::runAlgorithm(const long input, const long oldOutput, bool * ret_OutputFinished)
+long TtoPPOpenLConverter::runAlgorithm(const long input, const long oldOutput, IOConverter_Status * ret_status)
 {
-  *ret_OutputFinished = true; //open loop, so output is always finished per se
+  ret_status->flags = IOConverter_Complete;  //open loop, so output is always finished per se
   long newOutput;
 
   if(motorType == TorqueConvert_BrushedDC)
@@ -55,13 +55,13 @@ long TtoPPOpenLConverter::runAlgorithm(const long input, const long oldOutput, b
 //function to be called when class is acting as a support algorithm to another IOConverter.
 long TtoPPOpenLConverter::addToOutput(const long inputValue, const long calculatedOutput)
 {
-  bool dummy;
+  IOConverter_Status dummy;
   return runAlgorithm(inputValue, calculatedOutput, &dummy);
 }
 
-long TtoPPOpenLConverter::runAlgorithm(const long input, bool * ret_OutputFinished)
+long TtoPPOpenLConverter::runAlgorithm(const long input, IOConverter_Status *ret_status)
 {
-  return runAlgorithm(input, 0, ret_OutputFinished);
+  return runAlgorithm(input, 0, ret_status);
 }
 
 long TtoPPOpenLConverter::runAlgorithmBrushedDC(const long torque_milliNewtons)

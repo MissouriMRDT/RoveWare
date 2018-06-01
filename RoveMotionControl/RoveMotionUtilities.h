@@ -2,6 +2,7 @@
 #define JOINTFRAMEWORKUTILITIES_H_
 
 #include <stdint.h>
+class FeedbackDevice;
 
 //sign macro. Returns 1 if passed number is positive, -1 if it's negative, 0 if it's 0
 #define sign(x) ((x > 0) ? 1 : ((x < 0) ? -1 : 0))
@@ -37,8 +38,11 @@ enum AxisControlStatus
   //Unable to perform desired joint control update as one or more of the output devices used by the joint have been disabled
   DeviceDisabled,
 
-  //IOAlgorithm returned error
+  //IOConverter returned error
   AlgorithmError,
+
+  //IOConverter's feedback device failed
+  FeedbackError,
 
   //The stopcap for the axis was activated and stopped the axis from moving.
   StopcapActivated
@@ -50,12 +54,26 @@ enum FeedbackDevice_Status
   FeedbackStatus_Fail
 };
 
+enum IOConverter_StatusFlags
+{
+  IOConverter_FeedbackFail,
+  IOConverter_AlgorithmFail,
+  IOConverter_Complete,
+  IOConverter_RunAgain
+};
+
 enum StopcapStatus
 {
   StopcapStatus_None,
   StopcapStatus_OnlyPositive,
   StopcapStatus_OnlyNegative,
   StopcapStatus_FullStop
+};
+
+struct IOConverter_Status
+{
+    FeedbackDevice* failedDevice;
+    IOConverter_StatusFlags flags;
 };
 
 //The common inputs and outputs between classes will fall between these limits, class should not expect to take or return values outside of these

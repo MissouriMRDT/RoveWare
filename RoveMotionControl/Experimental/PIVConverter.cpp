@@ -224,12 +224,12 @@ int PIVConverter :: runVelAlgorithm(int speedDest, int *speedError)
  *
  *
  ***********************************/
-long PIVConverter :: runAlgorithm(const long input, bool * ret_OutputFinished)
+long PIVConverter :: runAlgorithm(const long input, IOConverter_Status * ret_status)
 {
-  return runAlgorithm(input, 0, ret_OutputFinished);
+  return runAlgorithm(input, 0, ret_status);
 }
 
-long PIVConverter::runAlgorithm(const long input, const long oldOutput, bool * ret_OutputFinished)
+long PIVConverter::runAlgorithm(const long input, const long oldOutput, IOConverter_Status * ret_status)
 {
   float deg_disToDest;
   int speedError;
@@ -253,7 +253,7 @@ long PIVConverter::runAlgorithm(const long input, const long oldOutput, bool * r
   // Check if the Algorithm class has actually been initialized or not. If not, kill the function.
   if (validConstruction == false)
   {
-    *ret_OutputFinished = false;
+    ret_status->flags = IOConverter_AlgorithmFail;
     return 0;
   }
 
@@ -263,19 +263,19 @@ long PIVConverter::runAlgorithm(const long input, const long oldOutput, bool * r
   }
   if(desiredSpeed == 0)
   {
-    *ret_OutputFinished = true;
+    ret_status->flags = IOConverter_Complete;
     pwr_out = 0;
   }
   else
   {
-    *ret_OutputFinished = false;
+    ret_status->flags = IOConverter_RunAgain;
     pwr_out += runVelAlgorithm(desiredSpeed, &speedError);
   }
 
   // if there's a supporting algorithm attached, run its output as well
   if(supportUsed)
   {
-    if(*ret_OutputFinished == false || supportIsPersistant)
+    if(supportIsPersistant)
     {
       pwr_out += supportingAlgorithm->addToOutput(input, pwr_out + oldOutput);
     }
@@ -309,7 +309,7 @@ long PIVConverter::runAlgorithm(const long input, const long oldOutput, bool * r
 //function to be called when class is acting as a support algorithm to another IOConverter.
 long PIVConverter::addToOutput(const long inputValue, const long calculatedOutput)
 {
-  bool dummy;
+  IOConverter_Status dummy;
   return runAlgorithm(inputValue, calculatedOutput, &dummy);
 }
 

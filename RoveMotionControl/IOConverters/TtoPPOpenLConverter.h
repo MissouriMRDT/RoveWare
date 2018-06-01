@@ -62,10 +62,10 @@ class TtoPPOpenLConverter: public IOConverter
     //returns:  A power percentage rating to give to the motor, in order to allow it to output up to roughly the given torque.
     //
     //notes:    Overrides DrivingAlgorithm's runAlgorithm virtual function.
-    long runAlgorithm(const long input, bool * ret_OutputFinished);
+    long runAlgorithm(const long input, IOConverter_Status * ret_status);
 
     //internal version of runAlgorithm that's designed to service both runAlgorithm(long, bool*) and addToOutput
-    long runAlgorithm(const long input, const long oldOutput, bool * ret_OutputFinished);
+    long runAlgorithm(const long input, const long oldOutput, IOConverter_Status * ret_status);
 
     //function to be called when class is acting as a support algorithm to another IOConverter.
     long addToOutput(const long inputValue, const long calculatedOutput);

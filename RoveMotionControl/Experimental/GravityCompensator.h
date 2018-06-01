@@ -22,7 +22,7 @@ class GravityCompensator: public IOConverter
   private:
 
     long addToOutput(const long inputValue, const long calculatedOutput);
-    long runAlgorithm(const long input, bool * ret_OutputFinished);
+    long runAlgorithm(const long input, IOConverter_Status * ret_status);
 
     uint8_t axisId;
     GravityInertiaSystemStatus* systemStatus;
